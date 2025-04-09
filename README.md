@@ -15,6 +15,8 @@ on:
 jobs:
   format:
     uses: Arthri/format-dotnet/.github/workflows/i.yml@v1
+    permissions:
+      contents: read
 ```
 
 ## Usage
