@@ -1,0 +1,73 @@
+name: Continuous Integration
+
+on:
+  workflow_call:
+    inputs:
+      runs-on:
+        default: ubuntu-24.04
+        description: The machine to run the jobs on.
+        required: false
+        type: string
+      dotnet-version:
+        description: The dotnet version(s) to restore. Corresponds to the dotnet-version parameter of actions/setup-dotnet. See https://github.com/actions/setup-dotnet for more information.
+        required: false
+        type: string
+      timeout-minutes:
+        default: 5
+        description: "The maximum number of minutes to let a workflow run before GitHub automatically cancels it. Default: 5"
+        required: false
+        type: number
+      format-arguments:
+        description: Additional arguments to pass to the dotnet format command.
+        required: false
+        type: string
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+  DOTNET_GENERATE_ASPNET_CERTIFICATE: 'false'
+  DOTNET_NOLOGO: 'true'
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 'true'
+
+jobs:
+  format:
+    runs-on: ${{ inputs.runs-on }}
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        id: setup-dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ inputs.dotnet-version }}
+
+      - name: Collect Cache Paths
+        run: |
+          NUGET_LOCAL_PATHS="$(dotnet nuget locals --list all)"
+          echo "$NUGET_LOCAL_PATHS"
+          {
+            echo 'NUGET_LOCALS<<"""'
+            sed -n 's/^[^:]\+: \(.\+\)/\1/p' <<< "$NUGET_LOCAL_PATHS" | jq -R -s
+            echo '"""'
+          } >> "$GITHUB_ENV"
+
+      - uses: actions/cache@v4
+        with:
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json', '**/dotnet-tools.json', '**/*.*proj') }}
+          path: |
+            ${{ fromJson(env.NUGET_LOCALS) }}
+            ~/.dotnet/toolResolverCache
+            **/obj
+
+      - name: Run .NET Format
+        env:
+          FORMAT_ARGUMENTS: ${{ inputs.format-arguments }}
+        run: |
+          format_arguments=($FORMAT_ARGUMENTS)
+          dotnet format --severity info --verify-no-changes "${format_arguments[@]}"
