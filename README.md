@@ -15,6 +15,8 @@ on:
 jobs:
   format:
     uses: Arthri/format-dotnet/.github/workflows/i.yml@v1
+    permissions:
+      contents: read
 ```
 
 ## Usage
@@ -22,14 +24,6 @@ jobs:
 ### Machine
 The workflow, by default, runs on Ubuntu 24.04 (as of April 09, 2025). The machine that the workflow runs on can be changed by using the `runs-on` input parameter.
 ```yml
-name: Continuous Integration
-
-on:
-  push:
-    branches: [ master, dev ]
-  pull_request:
-    branches: [ master, dev ]
-
 jobs:
   format:
     uses: Arthri/format-dotnet/.github/workflows/i.yml@v1
@@ -43,14 +37,6 @@ The workflow uses [actions/setup-dotnet](https://github.com/actions/setup-dotnet
 ### Timeout
 The workflow has a default timeout of 5 minutes, which can be changed by setting the `timeout-minutes` input parameter.
 ```yml
-name: Continuous Integration
-
-on:
-  push:
-    branches: [ master, dev ]
-  pull_request:
-    branches: [ master, dev ]
-
 jobs:
   format:
     uses: Arthri/format-dotnet/.github/workflows/i.yml@v1
@@ -62,14 +48,6 @@ jobs:
 ### Additional Arguments
 Additional arguments can be passed to the `dotnet format` command using the `format-arguments` input parameter.
 ```yml
-name: Continuous Integration
-
-on:
-  push:
-    branches: [ master, dev ]
-  pull_request:
-    branches: [ master, dev ]
-
 jobs:
   format:
     uses: Arthri/format-dotnet/.github/workflows/i.yml@v1
